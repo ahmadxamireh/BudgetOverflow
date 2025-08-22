@@ -1,0 +1,34 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Compiled TypeScript
+dist/
+build/
+*.tsbuildinfo
+
+# OS / Editor
+.DS_Store
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+.vscode/
+.idea/
+
+# knex seed/migration artifacts (optional, if generated dynamically)
+*.sqlite
+*.db
+
+# Postgres dump or local backups (optional)
+*.sql
+*.dump
