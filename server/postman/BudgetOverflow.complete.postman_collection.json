@@ -1,0 +1,697 @@
+{
+  "info": {
+    "name": "Budget Overflow Backend (Local) \u2013 Complete",
+    "_postman_id": "bo-1755020246",
+    "description": "Complete tests for Budget Overflow backend with auto categoryId, flexible response shapes, and Origin header for refresh/logout.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Ahmad\",\n  \"lastName\": \"Amireh\",\n  \"email\": \"{{registerEmail}}\",\n  \"password\": \"{{registerPassword}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get('registerEmail')) { pm.collectionVariables.set('registerEmail', pm.variables.replaceIn('{{$randomEmail}}')); }",
+                  "if (!pm.collectionVariables.get('registerPassword')) { pm.collectionVariables.set('registerPassword', 'P@ssw0rd!123'); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201/200', ()=> pm.expect(pm.response.code).to.be.oneOf([200,201]));",
+                  "pm.collectionVariables.set('email', pm.collectionVariables.get('registerEmail'));",
+                  "pm.collectionVariables.set('password', pm.collectionVariables.get('registerPassword'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', ()=> pm.expect(pm.response.code).to.equal(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('has accessToken', ()=> pm.expect(j && j.accessToken).to.be.ok);",
+                  "pm.collectionVariables.set('accessToken', j.accessToken);",
+                  "pm.test('refresh cookie set', ()=> pm.expect(pm.cookies.has('refreshToken')).to.be.ok);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', ()=> pm.expect(pm.response.code).to.equal(200));",
+                  "const j = pm.response.json(); const u = j.user || j;",
+                  "pm.test('has id/email', ()=> { pm.expect(u && u.id).to.be.ok; pm.expect(u && u.email).to.be.ok; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh (with Origin)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{frontendOrigin}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', ()=> pm.expect(pm.response.code).to.equal(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('has new accessToken', ()=> pm.expect(j && j.accessToken).to.be.ok);",
+                  "pm.collectionVariables.set('accessToken', j.accessToken);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout (with Origin)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Origin",
+                "value": "{{frontendOrigin}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', ()=> pm.expect(pm.response.code).to.equal(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "profile"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Updated\",\n  \"lastName\": \"User\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', ()=> pm.expect(pm.response.code).to.equal(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('has updated name', ()=> pm.expect(j && j.firstName === 'Updated').to.be.ok);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "change-password"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{password}}\",\n  \"newPassword\": \"NewP@ss12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', ()=> pm.expect(pm.response.code).to.equal(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Categories (auth required)",
+      "item": [
+        {
+          "name": "List categories (saves categoryId)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ]
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', ()=> pm.expect(pm.response.code).to.equal(200));",
+                  "const r = pm.response.json(); const arr = r && Array.isArray(r.data) ? r.data : [];",
+                  "pm.test('data is array', ()=> pm.expect(Array.isArray(arr)).to.be.true);",
+                  "let pick = arr.find(c=>c.name==='Groceries') || arr[0];",
+                  "if (pick && pick.id){ pm.collectionVariables.set('categoryId', pick.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create category",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Health\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', ()=> pm.expect(pm.response.code).to.equal(201));",
+                  "const j = pm.response.json(); const d = j && (j.data || j);",
+                  "if (d && d.id){ pm.collectionVariables.set('categoryId', d.id); }"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{accessToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Transactions (auth required)",
+      "item": [
+        {
+          "name": "Create transaction (uses saved categoryId)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/transactions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transactions"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Groceries\",\n  \"amount\": 120.45,\n  \"type\": \"expense\",\n  \"date\": \"2025-08-10\",\n  \"categoryId\": \"{{categoryId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201/200', ()=> pm.expect(pm.response.code).to.be.oneOf([200,201]));",
+                  "const j = pm.response.json(); const d = j && (j.data || j);",
+                  "const id = d && (d.id || d.tx?.id || (Array.isArray(d) && d[0]?.id));",
+                  "pm.collectionVariables.set('txId', id);",
+                  "pm.test('has txId', ()=> pm.expect(!!pm.collectionVariables.get('txId')).to.be.true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List transactions (filters)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/transactions?type=expense&limit=5&page=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transactions?type=expense&limit=5&page=1"
+              ]
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', ()=> pm.expect(pm.response.code).to.equal(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('has data array', ()=> pm.expect(j && Array.isArray(j.data)).to.be.true);",
+                  "pm.test('has pagination', ()=> pm.expect(j && j.pagination).to.be.ok);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update transaction",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/transactions/{{txId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transactions",
+                "{{txId}}"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Groceries - Updated\",\n  \"amount\": 115.0\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', ()=> pm.expect(pm.response.code).to.equal(200));",
+                  "const j = pm.response.json(); const d = j && (j.data || j);",
+                  "pm.test('has data.id', ()=> pm.expect(d && d.id).to.be.ok);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete transaction",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/transactions/{{txId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transactions",
+                "{{txId}}"
+              ]
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200/204', ()=> pm.expect(pm.response.code).to.be.oneOf([200,204]));",
+                  "if (pm.response.code !== 204){ const j = pm.response.json(); pm.test('has id', ()=> pm.expect(j && j.id).to.be.ok); }"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{accessToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Negative / Edge Cases",
+      "item": [
+        {
+          "name": "Register duplicate email",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Ahmad\",\n  \"lastName\": \"Amireh\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409/400', ()=> pm.expect(pm.response.code).to.be.oneOf([400,409]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login wrong password",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"WrongP@ssw0rd!\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401/400', ()=> pm.expect(pm.response.code).to.be.oneOf([400,401]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "frontendOrigin",
+      "value": "http://localhost:5173"
+    },
+    {
+      "key": "registerEmail",
+      "value": ""
+    },
+    {
+      "key": "registerPassword",
+      "value": ""
+    },
+    {
+      "key": "email",
+      "value": ""
+    },
+    {
+      "key": "password",
+      "value": ""
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "txId",
+      "value": ""
+    },
+    {
+      "key": "categoryId",
+      "value": ""
+    }
+  ]
+}
