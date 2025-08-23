@@ -158,16 +158,16 @@ export const loginUser = async (req: Request, res: Response) => {
         // set secure http-only access token cookie
         res.cookie("accessToken", accessToken, {
             httpOnly: true,
-            secure: NODE_ENV === "production",
-            sameSite: "lax",
+            secure: true,     // must be true for SameSite=none {secure: NODE_ENV === "production",}
+            sameSite: "none", // allow cross-site usage
             maxAge: 15 * 60 * 1000, // 15 minutes
         });
 
         // set secure http-only refresh token cookie
         res.cookie("refreshToken", rawRefresh, {
             httpOnly: true,
-            secure: NODE_ENV === "production",
-            sameSite: "lax",
+            secure: true,
+            sameSite: "none",
             path: "/api/auth/refresh",
             maxAge: REFRESH_TTL_MS,
         });
@@ -191,8 +191,8 @@ export const refreshToken = async (req: Request, res: Response) => {
         if (!raw) {
             res.clearCookie("refreshToken", {
                 httpOnly: true,
-                secure: NODE_ENV === "production",
-                sameSite: "lax",
+                secure: true,
+                sameSite: "none",
                 path: "/api/auth/refresh",
             });
             return res.status(403).json({ error: "Missing refresh token." });
@@ -208,8 +208,8 @@ export const refreshToken = async (req: Request, res: Response) => {
         if (!row) {
             res.clearCookie("refreshToken", {
                 httpOnly: true,
-                secure: NODE_ENV === "production",
-                sameSite: "lax",
+                secure: true,
+                sameSite: "none",
                 path: "/api/auth/refresh",
             });
             return res.status(403).json({ error: "Invalid refresh token. Please log in again." });
@@ -220,8 +220,8 @@ export const refreshToken = async (req: Request, res: Response) => {
             await deleteByHash(tokenHash);
             res.clearCookie("refreshToken", {
                 httpOnly: true,
-                secure: NODE_ENV === "production",
-                sameSite: "lax",
+                secure: true,
+                sameSite: "none",
                 path: "/api/auth/refresh",
             });
             return res.status(403).json({ error: "Refresh token expired. Please log in again." });
@@ -253,8 +253,8 @@ export const refreshToken = async (req: Request, res: Response) => {
         // set new refresh token cookie
         res.cookie("refreshToken", newRaw, {
             httpOnly: true,
-            secure: NODE_ENV === "production",
-            sameSite: "lax",
+            secure: true,
+            sameSite: "none",
             path: "/api/auth/refresh",
             maxAge: REFRESH_TTL_MS,
         });
@@ -262,8 +262,8 @@ export const refreshToken = async (req: Request, res: Response) => {
         // set new access token cookie
         res.cookie("accessToken", accessToken, {
             httpOnly: true,
-            secure: NODE_ENV === "production",
-            sameSite: "lax",
+            secure: true,
+            sameSite: "none",
             maxAge: 15 * 60 * 1000, // 15 minutes
         });
 
@@ -431,16 +431,16 @@ export const logoutUser = async (req: Request, res: Response) => {
         // clear refresh token cookie from the browser
         res.clearCookie("refreshToken", {
             httpOnly: true,
-            secure: NODE_ENV === "production",
-            sameSite: "lax",
+            secure: true,
+            sameSite: "none",
             path: "/api/auth/refresh", // must match refresh route
         });
 
         // clear access token cookie from the browser
         res.clearCookie("accessToken", {
             httpOnly: true,
-            secure: NODE_ENV === "production",
-            sameSite: "lax",
+            secure: true,
+            sameSite: "none",
         });
 
         // respond with success message
