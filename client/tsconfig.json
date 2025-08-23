@@ -1,0 +1,7 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" }, // main app config
+    { "path": "./tsconfig.node.json" } // node-only config (e.g. vite.config.ts)
+  ]
+}
